@@ -128,6 +128,72 @@ func Parse[T any](query string, data []T) (results []T, err error) {
 	return results, nil
 }
 
+// func (enc *Encoder) Encode(v interface{}) error {
+func ParseEncoder[T any](query string, data []T, encoder func(v any) error) (n int, err error) {
+	// Use the enhanced lexer that supports negative numbers
+	if query == "" {
+		for _, v := range data {
+			err = encoder(v)
+			if err != nil {
+				return n, err
+			}
+			n++
+		}
+		return n, nil
+	}
+
+	// Normalize humanized values in the query
+	query = normalizeHumanizedValues(query)
+
+	l := NewEnhancedLexer(query)
+	p := NewParser(l)
+
+	var ast Expression
+	ast, err = p.ParseQuery()
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse query: %w", err)
+	}
+	if len(p.Errors()) > 0 {
+		return 0, fmt.Errorf("parsing errors: %s", strings.Join(p.Errors(), "; "))
+	}
+	if ast == nil {
+		return 0, fmt.Errorf("failed to parse query: AST is nil")
+	}
+
+	// results = make([]T, 0, len(data))
+
+	for _, item := range data {
+		val := reflect.ValueOf(item)
+		if val.Kind() == reflect.Ptr && val.IsNil() {
+			continue
+		}
+
+		if val.Kind() == reflect.Ptr {
+			val = val.Elem() // Dereference if it's a pointer to a struct
+		}
+
+		if val.Kind() != reflect.Struct {
+			return 0, fmt.Errorf("expected slice of structs, got %s in data", val.Kind())
+		}
+
+		match, err := ast.Evaluate(val)
+		if err != nil {
+			// Return the evaluation error immediately as it's a validation issue
+			return 0, fmt.Errorf("evaluation error: %w", err)
+		}
+
+		if match {
+			n++
+			err = encoder(item)
+			if err != nil {
+				return n, err
+			}
+		}
+	}
+
+	return n, nil
+}
+
 // Enhanced getFieldValue: returns a slice of reflect.Value if a slice is encountered in the path
 func getFieldValues(item reflect.Value, fieldPath string) ([]reflect.Value, error) {
 	parts := strings.Split(fieldPath, ".")
@@ -148,7 +214,7 @@ func getFieldValues(item reflect.Value, fieldPath string) ([]reflect.Value, erro
 			}
 
 			if val.Kind() == reflect.Slice {
-				for j := 0; j < val.Len(); j++ {
+				for j := range val.Len() {
 					elem := val.Index(j)
 					if elem.Kind() == reflect.Ptr {
 						if elem.IsNil() {
@@ -207,7 +273,7 @@ func getFieldValues(item reflect.Value, fieldPath string) ([]reflect.Value, erro
 	flat := []reflect.Value{}
 	for _, v := range currentValues {
 		if v.Kind() == reflect.Slice {
-			for i := 0; i < v.Len(); i++ {
+			for i := range v.Len() {
 				flat = append(flat, v.Index(i))
 			}
 		} else {
@@ -226,7 +292,7 @@ func getFieldByNameCaseInsensitive(val reflect.Value, name string) reflect.Value
 
 	// Otherwise, for structs, match field names case-insensitively
 	typeOfVal := val.Type()
-	for i := 0; i < typeOfVal.NumField(); i++ {
+	for i := range typeOfVal.NumField() {
 		field := typeOfVal.Field(i)
 		if strings.EqualFold(field.Name, name) {
 			return val.Field(i)
@@ -368,7 +434,7 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 			return false, nil
 		}
 		if ce.Operator == CONTAINS {
-			for i := 0; i < fieldValue.Len(); i++ {
+			for i := range fieldValue.Len() {
 				item := fieldValue.Index(i)
 				if item.Kind() == reflect.Ptr && !item.IsNil() {
 					item = item.Elem()
@@ -385,7 +451,7 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 			}
 			return false, nil
 		} else if ce.Operator == EQ {
-			for i := 0; i < fieldValue.Len(); i++ {
+			for i := range fieldValue.Len() {
 				item := fieldValue.Index(i)
 				if item.Kind() == reflect.Ptr && !item.IsNil() {
 					item = item.Elem()
@@ -402,7 +468,7 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 			}
 			return false, nil
 		} else if ce.Operator == NE {
-			for i := 0; i < fieldValue.Len(); i++ {
+			for i := range fieldValue.Len() {
 				item := fieldValue.Index(i)
 				if item.Kind() == reflect.Ptr && !item.IsNil() {
 					item = item.Elem()
@@ -462,7 +528,7 @@ func (ce *ConjunctionExpression) Evaluate(item reflect.Value) (bool, error) {
 		}
 
 		if fieldValues[0].Kind() == reflect.Slice {
-			for i := 0; i < fieldValues[0].Len(); i++ {
+			for i := range fieldValues[0].Len() {
 				elem := fieldValues[0].Index(i)
 				allTrue := true
 				for _, expr := range ce.Expressions {
@@ -668,7 +734,7 @@ func (ae *AnyExpression) compareValue(fieldValue reflect.Value, value string) (b
 		if fieldValue.IsNil() {
 			return false, nil
 		}
-		for i := 0; i < fieldValue.Len(); i++ {
+		for i := range fieldValue.Len() {
 			item := fieldValue.Index(i)
 			if item.Kind() == reflect.Ptr && !item.IsNil() {
 				item = item.Elem()
