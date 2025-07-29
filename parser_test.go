@@ -416,20 +416,20 @@ func TestMapFields(t *testing.T) {
 func TestNestedMapFields(t *testing.T) {
 	type ComplexPerson struct {
 		Name       string
-		Properties map[string]interface{}
+		Properties map[string]any
 	}
 
 	people := []ComplexPerson{
 		{
 			Name: "Alice",
-			Properties: map[string]interface{}{
-				"contact": map[string]interface{}{
+			Properties: map[string]any{
+				"contact": map[string]any{
 					"email": "alice@example.com",
 					"phone": "123-456-7890",
 				},
-				"preferences": map[string]interface{}{
+				"preferences": map[string]any{
 					"theme": "dark",
-					"notifications": map[string]interface{}{
+					"notifications": map[string]any{
 						"email": true,
 						"push":  false,
 					},
@@ -438,14 +438,14 @@ func TestNestedMapFields(t *testing.T) {
 		},
 		{
 			Name: "Bob",
-			Properties: map[string]interface{}{
-				"contact": map[string]interface{}{
+			Properties: map[string]any{
+				"contact": map[string]any{
 					"email": "bob@example.com",
 					"phone": "098-765-4321",
 				},
-				"preferences": map[string]interface{}{
+				"preferences": map[string]any{
 					"theme": "light",
-					"notifications": map[string]interface{}{
+					"notifications": map[string]any{
 						"email": false,
 						"push":  true,
 					},
@@ -742,7 +742,7 @@ func TestMessageFieldParsing(t *testing.T) {
 	tests := []struct {
 		name          string
 		query         string
-		data          interface{}
+		data          any
 		expectError   bool
 		expectedCount int
 	}{
