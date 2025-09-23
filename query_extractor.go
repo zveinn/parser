@@ -4,17 +4,17 @@ import (
 	"strings"
 )
 
-// GetQueryExclusive extracts the value of a parameter from a query string
+// GetExclusiveField extracts the value of a parameter from a query string
 // if and only if that parameter appears exclusively in an AND context.
 // Returns (true, value) if the parameter is found with an exclusive AND condition.
 // Returns (false, "") if the parameter is not found, appears in an OR context,
 // or if the query structure makes it non-exclusive.
 //
 // Examples:
-//   - GetQueryExclusive("PoolID = 1 AND SetID = 2", "PoolID") returns (true, "1")
-//   - GetQueryExclusive("a = 2 OR b = 3", "a") returns (false, "")
-//   - GetQueryExclusive("(a = 1 AND b = 2) OR c = 3", "a") returns (false, "")
-func GetQueryExclusive(query, param string) (ok bool, value string) {
+//   - GetExclusiveField("PoolID = 1 AND SetID = 2", "PoolID") returns (true, "1")
+//   - GetExclusiveField("a = 2 OR b = 3", "a") returns (false, "")
+//   - GetExclusiveField("(a = 1 AND b = 2) OR c = 3", "a") returns (false, "")
+func GetExclusiveField(query, param string) (ok bool, value string) {
 	if query == "" || param == "" {
 		return false, ""
 	}
@@ -105,7 +105,7 @@ func cleanValue(value string) string {
 	// Remove quotes if present
 	if len(value) >= 2 {
 		if (value[0] == '"' && value[len(value)-1] == '"') ||
-		   (value[0] == '\'' && value[len(value)-1] == '\'') {
+			(value[0] == '\'' && value[len(value)-1] == '\'') {
 			return value[1 : len(value)-1]
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGetQueryExclusive(t *testing.T) {
+func TestGetExclusiveField(t *testing.T) {
 	tests := []struct {
 		name        string
 		query       string
@@ -233,15 +233,15 @@ func TestGetQueryExclusive(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			ok, value := GetQueryExclusive(tc.query, tc.param)
+			ok, value := GetExclusiveField(tc.query, tc.param)
 
 			if ok != tc.expectOk {
-				t.Errorf("GetQueryExclusive(%q, %q) ok = %v, want %v",
+				t.Errorf("GetExclusiveField(%q, %q) ok = %v, want %v",
 					tc.query, tc.param, ok, tc.expectOk)
 			}
 
 			if value != tc.expectValue {
-				t.Errorf("GetQueryExclusive(%q, %q) value = %q, want %q",
+				t.Errorf("GetExclusiveField(%q, %q) value = %q, want %q",
 					tc.query, tc.param, value, tc.expectValue)
 			}
 		})
@@ -249,52 +249,52 @@ func TestGetQueryExclusive(t *testing.T) {
 }
 
 // Benchmark tests
-func BenchmarkGetQueryExclusive_Simple(b *testing.B) {
+func BenchmarkGetExclusiveField_Simple(b *testing.B) {
 	query := "PoolID = 1 AND SetID = 2"
 	param := "PoolID"
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		GetQueryExclusive(query, param)
+		GetExclusiveField(query, param)
 	}
 }
 
-func BenchmarkGetQueryExclusive_Complex(b *testing.B) {
+func BenchmarkGetExclusiveField_Complex(b *testing.B) {
 	query := "PoolID = 1 AND SetID = 2 AND UserID = 100 AND Status = 'active' AND Count = 50"
 	param := "Status"
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		GetQueryExclusive(query, param)
+		GetExclusiveField(query, param)
 	}
 }
 
-func BenchmarkGetQueryExclusive_WithOR(b *testing.B) {
+func BenchmarkGetExclusiveField_WithOR(b *testing.B) {
 	query := "PoolID = 1 OR SetID = 2"
 	param := "PoolID"
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		GetQueryExclusive(query, param)
+		GetExclusiveField(query, param)
 	}
 }
 
 // Example usage tests to demonstrate the API
-func ExampleGetQueryExclusive() {
+func ExampleGetExclusiveField() {
 	// Basic usage
 	query := "PoolID = 1 AND SetID = 2"
 
-	if ok, value := GetQueryExclusive(query, "PoolID"); ok {
+	if ok, value := GetExclusiveField(query, "PoolID"); ok {
 		fmt.Println("PoolID:", value)
 	}
 
-	if ok, value := GetQueryExclusive(query, "SetID"); ok {
+	if ok, value := GetExclusiveField(query, "SetID"); ok {
 		fmt.Println("SetID:", value)
 	}
 
 	// Non-exclusive due to OR
 	orQuery := "Status = 'active' OR Status = 'pending'"
-	if ok, _ := GetQueryExclusive(orQuery, "Status"); !ok {
+	if ok, _ := GetExclusiveField(orQuery, "Status"); !ok {
 		fmt.Println("Status is not exclusive due to OR")
 	}
 	// Output:
