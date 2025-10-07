@@ -341,19 +341,19 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 		s := fieldValue.Interface().(string)
 		switch ce.Operator {
 		case EQ:
-			return s == ce.Value, nil
+			return strings.EqualFold(s, ce.Value), nil
 		case NE:
-			return s != ce.Value, nil
+			return !strings.EqualFold(s, ce.Value), nil
 		case LT:
-			return s < ce.Value, nil
+			return strings.ToLower(s) < strings.ToLower(ce.Value), nil
 		case GT:
-			return s > ce.Value, nil
+			return strings.ToLower(s) > strings.ToLower(ce.Value), nil
 		case LE:
-			return s <= ce.Value, nil
+			return strings.ToLower(s) <= strings.ToLower(ce.Value), nil
 		case GE:
-			return s >= ce.Value, nil
+			return strings.ToLower(s) >= strings.ToLower(ce.Value), nil
 		case CONTAINS:
-			return strings.Contains(s, ce.Value), nil
+			return strings.Contains(strings.ToLower(s), strings.ToLower(ce.Value)), nil
 		}
 	case reflect.Bool:
 		b, _ := strconv.ParseBool(ce.Value)
@@ -440,11 +440,11 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 					item = item.Elem()
 				}
 				if item.Kind() == reflect.String {
-					if item.String() == ce.Value || strings.Contains(item.String(), ce.Value) {
+					if strings.EqualFold(item.String(), ce.Value) || strings.Contains(strings.ToLower(item.String()), strings.ToLower(ce.Value)) {
 						return true, nil
 					}
 				} else if item.Kind() == reflect.Interface {
-					if s, ok := item.Interface().(string); ok && (s == ce.Value || strings.Contains(s, ce.Value)) {
+					if s, ok := item.Interface().(string); ok && (strings.EqualFold(s, ce.Value) || strings.Contains(strings.ToLower(s), strings.ToLower(ce.Value))) {
 						return true, nil
 					}
 				}
@@ -457,11 +457,11 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 					item = item.Elem()
 				}
 				if item.Kind() == reflect.String {
-					if item.String() == ce.Value {
+					if strings.EqualFold(item.String(), ce.Value) {
 						return true, nil
 					}
 				} else if item.Kind() == reflect.Interface {
-					if s, ok := item.Interface().(string); ok && s == ce.Value {
+					if s, ok := item.Interface().(string); ok && strings.EqualFold(s, ce.Value) {
 						return true, nil
 					}
 				}
@@ -474,11 +474,11 @@ func (ce *ComparisonExpression) compareValue(fieldValue reflect.Value) (bool, er
 					item = item.Elem()
 				}
 				if item.Kind() == reflect.String {
-					if item.String() == ce.Value {
+					if strings.EqualFold(item.String(), ce.Value) {
 						return false, nil
 					}
 				} else if item.Kind() == reflect.Interface {
-					if s, ok := item.Interface().(string); ok && s == ce.Value {
+					if s, ok := item.Interface().(string); ok && strings.EqualFold(s, ce.Value) {
 						return false, nil
 					}
 				}
@@ -656,19 +656,19 @@ func (ae *AnyExpression) compareValue(fieldValue reflect.Value, value string) (b
 		s := fieldValue.Interface().(string)
 		switch ae.Operator {
 		case EQ:
-			return s == value, nil
+			return strings.EqualFold(s, value), nil
 		case NE:
-			return s != value, nil
+			return !strings.EqualFold(s, value), nil
 		case LT:
-			return s < value, nil
+			return strings.ToLower(s) < strings.ToLower(value), nil
 		case GT:
-			return s > value, nil
+			return strings.ToLower(s) > strings.ToLower(value), nil
 		case LE:
-			return s <= value, nil
+			return strings.ToLower(s) <= strings.ToLower(value), nil
 		case GE:
-			return s >= value, nil
+			return strings.ToLower(s) >= strings.ToLower(value), nil
 		case CONTAINS:
-			return strings.Contains(s, value), nil
+			return strings.Contains(strings.ToLower(s), strings.ToLower(value)), nil
 		}
 	case reflect.Bool:
 		b, _ := strconv.ParseBool(value)
@@ -743,15 +743,15 @@ func (ae *AnyExpression) compareValue(fieldValue reflect.Value, value string) (b
 			if item.Kind() == reflect.String {
 				switch ae.Operator {
 				case EQ:
-					if item.String() == value {
+					if strings.EqualFold(item.String(), value) {
 						return true, nil
 					}
 				case NE:
-					if item.String() != value {
+					if !strings.EqualFold(item.String(), value) {
 						return true, nil
 					}
 				case CONTAINS:
-					if strings.Contains(item.String(), value) {
+					if strings.Contains(strings.ToLower(item.String()), strings.ToLower(value)) {
 						return true, nil
 					}
 				}
@@ -825,15 +825,15 @@ func (ae *AnyExpression) compareValue(fieldValue reflect.Value, value string) (b
 				if s, ok := item.Interface().(string); ok {
 					switch ae.Operator {
 					case EQ:
-						if s == value {
+						if strings.EqualFold(s, value) {
 							return true, nil
 						}
 					case NE:
-						if s != value {
+						if !strings.EqualFold(s, value) {
 							return true, nil
 						}
 					case CONTAINS:
-						if strings.Contains(s, value) {
+						if strings.Contains(strings.ToLower(s), strings.ToLower(value)) {
 							return true, nil
 						}
 					}

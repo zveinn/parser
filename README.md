@@ -13,7 +13,7 @@
 - **Nested Field Access**: Query nested structs and maps using dot notation (e.g., `Department.Name`).
 - **Humanized Values Support**: Parse human-readable values like time units (`10m`, `2h30m`), byte units (`10GB`/`10GiB`, `2TB`/`2TiB`), SI prefixes (`1.5K`, `2.3M`), and comma-separated numbers (`1,000`) automatically.
 - **Rich Operators**: Supports `=`, `!=`, `<`, `>`, `<=`, `>=`, `CONTAINS`, `IS NULL`, `ANY`, `NOT`, `AND`, `OR`.
-- **Case-Insensitive Matching**: Field names and keywords (e.g., `AND`, `OR`) are case-insensitive.
+- **Case-Insensitive Matching**: Field names, keywords (e.g., `AND`, `OR`), and string value comparisons are all case-insensitive.
 - **Efficient Parsing**: Uses an enhanced lexer with support for negative numbers, scientific notation, and comma-separated numbers.
 - **Robust Error Handling**: Detailed error messages for syntax and evaluation errors.
 - **Zero Dependencies**: Pure Go implementation with built-in support for time, byte, and SI unit parsing.
@@ -87,6 +87,34 @@ Match: Charlie (Age: 35)
 ### Query Syntax
 
 The query language supports a variety of operators and expressions:
+
+#### Case-Insensitive String Matching
+
+All string comparisons are **case-insensitive** by default. This applies to:
+- Equality comparisons (`=`, `!=`)
+- Ordering comparisons (`<`, `>`, `<=`, `>=`)
+- Contains operations (`CONTAINS`)
+- Array/slice element matching
+
+**Examples:**
+```sql
+# These all match "Apple", "APPLE", "apple", etc.
+Name = 'apple'
+Name = 'APPLE'
+Name = 'Apple'
+
+# Case-insensitive NOT EQUAL
+Name != 'samsung'  # Excludes "Samsung", "SAMSUNG", "samsung", etc.
+
+# Case-insensitive CONTAINS
+Description CONTAINS 'phone'  # Matches "iPhone", "PHONE", "Phone", etc.
+
+# Case-insensitive in arrays
+Tags CONTAINS 'premium'  # Matches array elements like "Premium", "PREMIUM", "premium"
+
+# Case-insensitive ordering
+Brand < 'b'  # "Apple", "APPLE", "apple" all evaluate as less than "b"
+```
 
 #### Comparison Operators
 | Operator   | Description              | Example                |
