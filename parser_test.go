@@ -413,6 +413,50 @@ func TestMapFields(t *testing.T) {
 	}
 }
 
+// TestMapFieldsWithHyphen covers issue #8: map keys containing a hyphen ('-')
+// should be matchable. The lexer previously stopped reading the identifier at
+// the hyphen, producing a "failed to parse query: -" error.
+func TestMapFieldsWithHyphen(t *testing.T) {
+	people := []Person{
+		{
+			Name: "Alice",
+			Tags: map[string]string{
+				"team-name": "backend",
+				"location":  "remote",
+			},
+		},
+		{
+			Name: "Bob",
+			Tags: map[string]string{
+				"team-name": "frontend",
+				"location":  "office",
+			},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		query    string
+		expected int
+	}{
+		{"Hyphenated map key equality", "Tags.team-name = 'backend'", 1},
+		{"Hyphenated map key case insensitive", "Tags.TEAM-NAME = 'frontend'", 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := Parse(tt.query, people)
+			if err != nil {
+				t.Fatalf("Error parsing query '%s': %v", tt.query, err)
+			}
+
+			if len(results) != tt.expected {
+				t.Errorf("Query '%s' returned %d results, expected %d", tt.query, len(results), tt.expected)
+			}
+		})
+	}
+}
+
 func TestNestedMapFields(t *testing.T) {
 	type ComplexPerson struct {
 		Name       string
