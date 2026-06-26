@@ -140,7 +140,7 @@ func (l *EnhancedLexer) skipWhitespace() {
 
 func (l *EnhancedLexer) readIdentifier() string {
 	position := l.position
-	for isLetter(l.ch) || isDigit(l.ch) || l.ch == '.' || l.ch == '_' {
+	for isLetter(l.ch) || isDigit(l.ch) || l.ch == '.' || l.ch == '_' || l.ch == '-' {
 		l.readChar()
 	}
 	return l.input[position:l.position]
